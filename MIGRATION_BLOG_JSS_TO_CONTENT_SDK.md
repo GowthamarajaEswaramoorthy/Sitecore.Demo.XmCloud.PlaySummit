@@ -151,9 +151,39 @@ npm list @sitecore-jss/sitecore-jss-nextjs
 # Expected output after upgrade: @sitecore-jss/sitecore-jss-nextjs@22.8.0
 ```
 
-### Upgrade to JSS 22.8.0 First (Required)
+### Critical: Upgrade Node.js to Version 22 First
 
-Before migrating to Content SDK, you **must** upgrade to JSS 22.8.0. This intermediate step ensures compatibility and reduces migration issues.
+**Before any package upgrades**, you must upgrade to Node.js 22. Both JSS 22.8.0 and Content SDK require Node.js >=22.
+
+#### Check Current Node.js Version
+
+```powershell
+node --version
+# If showing v18.x.x or lower, you must upgrade
+```
+
+#### Upgrade to Node.js 22
+
+```powershell
+# Check if Node.js 22 is already installed
+nvm list
+
+# If Node.js 22 is not installed, install it
+nvm install 22.17.1
+
+# Switch to Node.js 22
+nvm use 22.17.1
+
+# Verify the switch
+node --version  # Should show v22.17.1
+npm --version   # Should show v10.x.x
+```
+
+> **⚠️ Critical**: All subsequent npm commands will fail if you're not on Node.js 22. Always verify your Node.js version before proceeding.
+
+### Upgrade to JSS 22.8.0 (Required)
+
+After upgrading to Node.js 22, upgrade to JSS 22.8.0. This intermediate step ensures compatibility and reduces migration issues.
 
 #### Update package.json Dependencies
 
@@ -185,18 +215,25 @@ Edit your `package.json`:
 }
 ```
 
-#### Install Updated Dependencies
+#### Clean Install with Node.js 22
 
 ```powershell
-# Install with legacy-peer-deps to handle peer dependency conflicts
+# Clean node_modules to ensure no conflicts
+Remove-Item -Path "node_modules" -Recurse -Force
+Remove-Item -Path "package-lock.json" -Force
+
+# Install with legacy-peer-deps
 npm install --legacy-peer-deps
 ```
 
-> **💡 Why `--legacy-peer-deps`?** The major version updates (React 18→19, Next.js 14→15) may have peer dependency conflicts with other packages. This flag allows npm to install despite these conflicts.
+> **💡 Why `--legacy-peer-deps`?** The major version updates (React 18→19, Next.js 14→15) have peer dependency conflicts with older packages. This flag allows npm to install despite these conflicts.
 
 #### Verify the Upgrade
 
 ```powershell
+# Verify Node.js version (critical!)
+node --version  # Must be v22.x.x
+
 # Check installed versions
 npm list @sitecore-jss/sitecore-jss-nextjs
 npm list react
@@ -1197,27 +1234,46 @@ ts-node scripts/test-integrations.ts
 
 ### Challenge 1: npm Install/Uninstall Failures
 
-**Problem:** Commands fail with peer dependency errors:
+**Problem:** Commands fail with peer dependency errors during package removal or installation:
+
 ```
 npm ERR! ERESOLVE unable to resolve dependency tree
 npm ERR! Could not resolve dependency: peer @sitecore-cloudsdk/core@"^0.5.1"
 ```
 
-**Solution:** Always use `--legacy-peer-deps` flag:
+**Root Cause:** Major version updates (React 18→19, Next.js 14→15, JSS 22.2→22.8) create peer dependency conflicts when npm tries to resolve dependencies during intermediate states.
+
+**Solution:** Always use `--legacy-peer-deps` flag and combine operations:
+
 ```powershell
-# For installs
-npm install --legacy-peer-deps
+# ✅ Correct: Combine multiple uninstalls into one command
+npm uninstall @sitecore-jss/sitecore-jss-nextjs @sitecore-jss/sitecore-jss-cli @sitecore-jss/sitecore-jss-dev-tools --legacy-peer-deps
 
-# For uninstalls (combine multiple packages)
-npm uninstall package1 package2 package3 --legacy-peer-deps
+# ❌ Incorrect: Removing packages one by one
+npm uninstall @sitecore-jss/sitecore-jss-nextjs
+npm uninstall @sitecore-jss/sitecore-jss-cli
+npm uninstall @sitecore-jss/sitecore-jss-dev-tools
 
-# For updates
+# ✅ Correct: Install with flag
+npm install @sitecore-content-sdk/nextjs --legacy-peer-deps
+
+# ✅ Correct: Updates with flag
 npm update --legacy-peer-deps
 ```
 
-### Challenge 2: Node.js Version Issues
+**Additional Steps if Issues Persist:**
 
-**Problem:** Warnings about unsupported engine:
+```powershell
+# Clean install to reset dependency tree
+Remove-Item -Path "node_modules" -Recurse -Force
+Remove-Item -Path "package-lock.json" -Force
+npm install --legacy-peer-deps
+```
+
+### Challenge 2: Node.js Version Compatibility - **CRITICAL**
+
+**Problem:** Content SDK installation shows EBADENGINE warnings:
+
 ```
 npm WARN EBADENGINE Unsupported engine {
 npm WARN EBADENGINE   required: { node: '>=22' },
@@ -1225,12 +1281,39 @@ npm WARN EBADENGINE   current: { node: 'v18.18.0', npm: '9.8.1' }
 npm WARN EBADENGINE }
 ```
 
-**Solution:** Upgrade to Node.js 22:
+**⚠️ These are NOT just warnings** - they indicate a critical compatibility issue. Both JSS 22.8.0 and Content SDK require Node.js >=22.
+
+**Solution:** Upgrade to Node.js 22 BEFORE attempting any package installations:
+
 ```powershell
-# Using nvm-windows
-nvm install 22.0.0
-nvm use 22.0.0
-node --version
+# Check if Node.js 22 is already installed
+nvm list
+
+# If Node.js 22.x is listed, switch to it
+nvm use 22.17.1
+
+# If not listed, install it first
+nvm install 22.17.1
+nvm use 22.17.1
+
+# Verify the switch (critical step!)
+node --version  # Must show v22.x.x
+npm --version   # Should show v10.x.x
+
+# After switching Node.js versions, clean reinstall is required
+Remove-Item -Path "node_modules" -Recurse -Force
+Remove-Item -Path "package-lock.json" -Force
+npm install --legacy-peer-deps
+
+# Verify Content SDK installation
+npm list @sitecore-content-sdk/nextjs
+# Expected: playwebsite@1.0.0 └── @sitecore-content-sdk/nextjs@1.2.1
+```
+
+**Why This Matters:**
+- Node.js 18 lacks features required by Content SDK
+- Package installation may appear to succeed but will fail at runtime
+- All subsequent npm operations must be performed with Node.js 22 active
 
 # Reinstall dependencies with correct Node version
 Remove-Item -Path "node_modules" -Recurse -Force
@@ -1654,6 +1737,133 @@ By migrating from JSS to Content SDK 1.x, the PLAY! Summit demo achieves:
 
 ---
 
+## 💡 Actual Migration Experience
+
+This section documents real-world experiences and lessons learned while migrating the PLAY! Summit project from JSS 22.2.0 to Content SDK 1.2.1.
+
+### Key Lessons Learned
+
+#### 1. **Node.js 22 is Non-Negotiable**
+
+The most critical discovery: **Node.js 22 is not optional**. The migration cannot proceed on Node.js 18, despite appearing to install successfully.
+
+**What Happened:**
+- Initial attempt on Node.js 18.18.0 with npm 9.8.1
+- Content SDK installation showed EBADENGINE warnings
+- These warnings initially appeared non-critical
+- Reality: Both JSS 22.8.0 and Content SDK require Node.js >=22
+
+**Correct Approach:**
+```powershell
+# FIRST: Verify Node.js version
+node --version
+
+# If not 22.x, check available versions
+nvm list
+
+# Switch to 22.x (install if needed)
+nvm use 22.17.1  # or nvm install 22.17.1
+
+# THEN proceed with package operations
+```
+
+**Time Saved:** Checking Node.js version FIRST saves 1-2 hours of troubleshooting mysterious errors later.
+
+#### 2. **Combine npm Operations to Avoid Peer Dependency Hell**
+
+**What Didn't Work:**
+```powershell
+# ❌ Removing packages one by one
+npm uninstall @sitecore-jss/sitecore-jss-nextjs
+# Error: ERESOLVE unable to resolve dependency tree
+npm uninstall @sitecore-jss/sitecore-jss-cli
+# Error: peer dependency conflicts
+```
+
+**What Worked:**
+```powershell
+# ✅ Remove all JSS packages in one command
+npm uninstall @sitecore-jss/sitecore-jss-nextjs @sitecore-jss/sitecore-jss-cli @sitecore-jss/sitecore-jss-dev-tools --legacy-peer-deps
+```
+
+**Why:** Major version updates (React 18→19, Next.js 14→15) create peer dependency conflicts. Removing packages individually leaves the dependency tree in intermediate states that npm cannot resolve. Combining operations avoids these intermediate states.
+
+#### 3. **--legacy-peer-deps is Your Friend**
+
+Every npm operation during this migration required the `--legacy-peer-deps` flag:
+
+```powershell
+npm install --legacy-peer-deps
+npm uninstall package1 package2 --legacy-peer-deps
+npm update --legacy-peer-deps
+```
+
+**Why:** The migration involves multiple major version jumps simultaneously (React, Next.js, JSS). The `--legacy-peer-deps` flag tells npm to use the npm 6 peer dependency resolution algorithm, which is more lenient about peer dependency conflicts.
+
+#### 4. **Clean Install After Node.js Upgrade**
+
+After switching from Node.js 18 to Node.js 22, a clean install was mandatory:
+
+```powershell
+# Required after Node.js version change
+Remove-Item -Path "node_modules" -Recurse -Force
+Remove-Item -Path "package-lock.json" -Force
+npm install --legacy-peer-deps
+```
+
+**Why:** `package-lock.json` is tied to the Node.js/npm version that generated it. Switching Node.js versions without regenerating the lock file causes subtle inconsistencies.
+
+#### 5. **Verification Steps Are Critical**
+
+After each major step, verification prevented wasted time:
+
+```powershell
+# Verify Node.js version (do this OFTEN)
+node --version
+npm --version
+
+# Verify JSS upgrade
+npm list @sitecore-jss/sitecore-jss-nextjs
+
+# Verify Content SDK installation
+npm list @sitecore-content-sdk/nextjs
+# Expected: playwebsite@1.0.0 └── @sitecore-content-sdk/nextjs@1.2.1
+```
+
+### Actual Timeline (So Far)
+
+| Phase | Estimated | Actual | Notes |
+|-------|-----------|--------|-------|
+| **Upgrade to JSS 22.8** | 2-4 hours | 1 hour | Straightforward with correct Node.js version |
+| **Remove JSS Packages** | 30 min | 1.5 hours | Trial and error with npm commands |
+| **Install Content SDK** | 30 min | 2 hours | Node.js version discovery |
+| **Documentation Updates** | 1 hour | 2 hours | Capturing lessons learned |
+
+**Total So Far:** ~6.5 hours (mostly due to Node.js discovery and npm command debugging)
+
+### Troubleshooting Time Savers
+
+1. **Always check Node.js version first** (saves 1-2 hours)
+2. **Use combined npm commands** (saves 30-60 minutes)
+3. **Keep --legacy-peer-deps flag handy** (saves 30 minutes per error)
+4. **Clean install after Node.js changes** (saves 1 hour of debugging)
+5. **Verify each step immediately** (saves 2-3 hours of backtracking)
+
+### What's Different from Documentation
+
+**Official docs suggest:**
+- Individual package removal
+- Node.js version as a "requirement" (not emphasized as critical)
+- Standard npm commands without flags
+
+**Reality requires:**
+- Combined package operations
+- Node.js 22 verification BEFORE any package work
+- --legacy-peer-deps flag for all operations
+- Clean installs after Node.js version changes
+
+---
+
 ## 📝 Migration Checklist
 
 Use this checklist to track your migration progress:
@@ -1662,7 +1872,8 @@ Use this checklist to track your migration progress:
 ## Pre-Migration
 - [ ] Backup current codebase
 - [ ] Create migration branch
-- [ ] Upgrade Node.js to version 22+
+- [ ] **⚠️ CRITICAL: Verify Node.js version is 22+ (use `node --version`)**
+- [ ] **⚠️ CRITICAL: Switch to Node.js 22 if needed (use `nvm use 22.17.1`)**
 - [ ] Upgrade to JSS 22.8.0
 - [ ] Test JSS 22.8.0 application
 - [ ] Document current implementation
