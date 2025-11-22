@@ -377,15 +377,17 @@ npm uninstall @sitecore-jss/sitecore-jss-nextjs @sitecore-jss/sitecore-jss-cli @
 #### Step 2: Install Content SDK Dependencies
 
 ```powershell
-# Install Content SDK packages with legacy-peer-deps
-npm install @sitecore-content-sdk/nextjs@latest @sitecore/content-sdk@latest --legacy-peer-deps
+# Install ONLY the Next.js SDK package (core is included as dependency)
+npm install @sitecore-content-sdk/nextjs@latest --legacy-peer-deps
 
 # Verify installation
 npm list @sitecore-content-sdk/nextjs
-npm list @sitecore/content-sdk
+# Expected output: playwebsite@1.0.0 └── @sitecore-content-sdk/nextjs@1.2.1
 ```
 
-> **⚠️ Note**: Continue using `--legacy-peer-deps` throughout the migration to maintain consistency with your dependency resolution strategy.
+> **⚠️ Important**: Only install `@sitecore-content-sdk/nextjs`. The `@sitecore/content-sdk` core package is automatically included as a dependency. Installing both explicitly may cause errors.
+
+> **💡 Note**: Continue using `--legacy-peer-deps` throughout the migration to maintain consistency with your dependency resolution strategy.
 
 #### Step 3: Update package.json
 
@@ -1813,7 +1815,31 @@ npm install --legacy-peer-deps
 
 **Why:** `package-lock.json` is tied to the Node.js/npm version that generated it. Switching Node.js versions without regenerating the lock file causes subtle inconsistencies.
 
-#### 5. **Verification Steps Are Critical**
+#### 5. **Only Install @sitecore-content-sdk/nextjs**
+
+**What Didn't Work:**
+```powershell
+# ❌ Installing both packages explicitly causes errors
+npm install @sitecore-content-sdk/nextjs@latest @sitecore/content-sdk@latest --legacy-peer-deps
+# Error: Installation fails
+```
+
+**What Worked:**
+```powershell
+# ✅ Install only the Next.js SDK package
+npm install @sitecore-content-sdk/nextjs@latest --legacy-peer-deps
+```
+
+**Why:** The `@sitecore/content-sdk` core package is automatically included as a dependency of `@sitecore-content-sdk/nextjs`. Installing both explicitly creates conflicts in the dependency tree.
+
+**Verification:**
+```powershell
+npm list @sitecore-content-sdk/nextjs
+# Expected: playwebsite@1.0.0 └── @sitecore-content-sdk/nextjs@1.2.1
+# Note: @sitecore/content-sdk is nested under nextjs package
+```
+
+#### 6. **Verification Steps Are Critical**
 
 After each major step, verification prevented wasted time:
 
@@ -1836,10 +1862,11 @@ npm list @sitecore-content-sdk/nextjs
 |-------|-----------|--------|-------|
 | **Upgrade to JSS 22.8** | 2-4 hours | 1 hour | Straightforward with correct Node.js version |
 | **Remove JSS Packages** | 30 min | 1.5 hours | Trial and error with npm commands |
-| **Install Content SDK** | 30 min | 2 hours | Node.js version discovery |
-| **Documentation Updates** | 1 hour | 2 hours | Capturing lessons learned |
+| **Install Content SDK** | 30 min | 2.5 hours | Node.js version + package installation discovery |
+| **Install Content SDK** | 30 min | 2.5 hours | Node.js version + package installation discovery |
+| **Documentation Updates** | 1 hour | 2.5 hours | Capturing lessons learned |
 
-**Total So Far:** ~6.5 hours (mostly due to Node.js discovery and npm command debugging)
+**Total So Far:** ~7.5 hours (mostly due to Node.js discovery and npm command debugging)
 
 ### Troubleshooting Time Savers
 
@@ -1847,18 +1874,23 @@ npm list @sitecore-content-sdk/nextjs
 2. **Use combined npm commands** (saves 30-60 minutes)
 3. **Keep --legacy-peer-deps flag handy** (saves 30 minutes per error)
 4. **Clean install after Node.js changes** (saves 1 hour of debugging)
-5. **Verify each step immediately** (saves 2-3 hours of backtracking)
+5. **Only install @sitecore-content-sdk/nextjs** (saves 30 minutes of troubleshooting)
+6. **Verify each step immediately** (saves 2-3 hours of backtracking)
 
 ### What's Different from Documentation
 
 **Official docs suggest:**
+
 - Individual package removal
 - Node.js version as a "requirement" (not emphasized as critical)
+- Installing both @sitecore-content-sdk/nextjs and @sitecore/content-sdk
 - Standard npm commands without flags
 
 **Reality requires:**
+
 - Combined package operations
 - Node.js 22 verification BEFORE any package work
+- Only install @sitecore-content-sdk/nextjs (core is included automatically)
 - --legacy-peer-deps flag for all operations
 - Clean installs after Node.js version changes
 
