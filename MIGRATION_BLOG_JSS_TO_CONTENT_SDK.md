@@ -1,6 +1,7 @@
 # Migrating from JSS to Sitecore Content SDK 1.x: A Complete Guide Using PLAY! Summit
 
 ## 📋 Table of Contents
+
 1. [Introduction](#introduction)
 2. [Why Migrate from JSS to Content SDK?](#why-migrate-from-jss-to-content-sdk)
 3. [Understanding the Architectural Differences](#understanding-the-architectural-differences)
@@ -18,6 +19,7 @@
 The Sitecore ecosystem has evolved significantly with the introduction of the **Sitecore Content SDK 1.x**, designed specifically for **XM Cloud** and **SitecoreAI**. This comprehensive guide walks you through migrating the PLAY! Summit demo site from Sitecore JavaScript Services (JSS) to the modern Content SDK, providing real-world examples and actionable commands.
 
 The PLAY! Summit site currently uses:
+
 - **Sitecore JSS 22.2.0** (`@sitecore-jss/sitecore-jss-nextjs`)
 - **Next.js 14.1.0**
 - Multiple JSS-specific configurations and services
@@ -34,17 +36,17 @@ Sitecore JSS has been the go-to solution for headless applications, but the Cont
 
 ### Key Benefits
 
-| Aspect | JSS (Legacy) | Content SDK (Modern) |
-|--------|-------------|---------------------|
-| **Application Size** | Larger, more complex | 30-40% smaller, streamlined |
-| **Configuration** | Multiple scattered config files | Centralized `sitecore.config.ts` |
-| **Data Fetching** | Multiple plugins and services | Unified `SitecoreClient` class |
-| **Visual Editing** | Experience Editor + Pages | XM Cloud Pages only |
-| **Middleware** | Separate plugin files | `defineMiddleware` function |
+| Aspect                | JSS (Legacy)                    | Content SDK (Modern)               |
+| --------------------- | ------------------------------- | ---------------------------------- |
+| **Application Size**  | Larger, more complex            | 30-40% smaller, streamlined        |
+| **Configuration**     | Multiple scattered config files | Centralized `sitecore.config.ts`   |
+| **Data Fetching**     | Multiple plugins and services   | Unified `SitecoreClient` class     |
+| **Visual Editing**    | Experience Editor + Pages       | XM Cloud Pages only                |
+| **Middleware**        | Separate plugin files           | `defineMiddleware` function        |
 | **Component Mapping** | Automatic with ComponentBuilder | Manual with auto-generation option |
-| **API Calls** | GraphQL + REST (complex) | Streamlined REST APIs |
-| **Performance** | Good | Optimized, faster delivery |
-| **Cloud Support** | XM/XP + XM Cloud | XM Cloud exclusive |
+| **API Calls**         | GraphQL + REST (complex)        | Streamlined REST APIs              |
+| **Performance**       | Good                            | Optimized, faster delivery         |
+| **Cloud Support**     | XM/XP + XM Cloud                | XM Cloud exclusive                 |
 
 ### What You Gain
 
@@ -53,7 +55,7 @@ Sitecore JSS has been the go-to solution for headless applications, but the Cont
 ✅ **Modern Tooling** - New CLI commands and configuration patterns  
 ✅ **Future-Ready** - Built specifically for SitecoreAI and XM Cloud  
 ✅ **Reduced Complexity** - No more Experience Editor complexity  
-✅ **Improved Performance** - Optimized content delivery mechanisms  
+✅ **Improved Performance** - Optimized content delivery mechanisms
 
 ---
 
@@ -64,9 +66,10 @@ Sitecore JSS has been the go-to solution for headless applications, but the Cont
 #### 1. **Content Delivery Mechanism**
 
 **JSS Approach:**
+
 ```typescript
 // JSS uses LayoutService with complex configuration
-import { LayoutService } from '@sitecore-jss/sitecore-jss-nextjs';
+import { LayoutService } from "@sitecore-jss/sitecore-jss-nextjs";
 
 const layoutService = new LayoutService({
   apiHost: process.env.SITECORE_API_HOST,
@@ -78,9 +81,10 @@ const layoutData = await layoutService.fetchLayoutData(path, language);
 ```
 
 **Content SDK Approach:**
+
 ```typescript
 // Content SDK uses unified SitecoreClient
-import { SitecoreClient } from '@sitecore-content-sdk/nextjs';
+import { SitecoreClient } from "@sitecore-content-sdk/nextjs";
 
 const client = new SitecoreClient({
   endpoint: process.env.SITECORE_API_URL,
@@ -92,15 +96,16 @@ const layoutData = await client.layout.fetch({ path, language });
 
 #### 2. **Authentication & Authorization**
 
-| Feature | JSS | Content SDK |
-|---------|-----|-------------|
-| Auth Method | Forms Auth / Custom OAuth | Modern OAuth 2.0 |
-| Environment Variable | `JSS_EDITING_SECRET` | `SITECORE_EDITING_SECRET` |
-| Token Handling | Manual implementation | Built-in OAuth support |
+| Feature              | JSS                       | Content SDK               |
+| -------------------- | ------------------------- | ------------------------- |
+| Auth Method          | Forms Auth / Custom OAuth | Modern OAuth 2.0          |
+| Environment Variable | `JSS_EDITING_SECRET`      | `SITECORE_EDITING_SECRET` |
+| Token Handling       | Manual implementation     | Built-in OAuth support    |
 
 #### 3. **Configuration Structure**
 
 **JSS Configuration (Scattered):**
+
 ```
 /scjssconfig.json
 /package.json (JSS config section)
@@ -109,6 +114,7 @@ const layoutData = await client.layout.fetch({ path, language });
 ```
 
 **Content SDK Configuration (Centralized):**
+
 ```
 /sitecore.config.ts        # Main app configuration
 /sitecore.cli.config.ts     # CLI configuration
@@ -129,11 +135,12 @@ Before starting the migration, ensure you have:
 - ✅ **Code Editor**: VS Code recommended
 
 > **⚠️ Important**: JSS 22.8.0 and Content SDK require Node.js 22 or higher. If you're on Node.js 18, upgrade first:
+>
 > ```powershell
 > # Using nvm-windows
 > nvm install 22
 > nvm use 22
-> 
+>
 > # Verify version
 > node --version  # Should show v22.x.x
 > ```
@@ -276,21 +283,13 @@ Get-ChildItem -Path src -Filter "*.ts*" -Recurse | Select-String "@sitecore-jss"
 ### Step 2: Document Current Configuration
 
 **Current JSS Configuration (package.json):**
+
 ```json
 {
   "config": {
     "appName": "playwebsite",
-    "rootPlaceholders": [
-      "headless-header",
-      "headless-main", 
-      "headless-footer"
-    ],
-    "templates": [
-      "nextjs",
-      "nextjs-xmcloud",
-      "nextjs-sxa",
-      "nextjs-multisite"
-    ]
+    "rootPlaceholders": ["headless-header", "headless-main", "headless-footer"],
+    "templates": ["nextjs", "nextjs-xmcloud", "nextjs-sxa", "nextjs-multisite"]
   },
   "dependencies": {
     "@sitecore-jss/sitecore-jss-nextjs": "~22.2.0"
@@ -348,6 +347,7 @@ npx create-content-sdk-app@latest playsummit-reference
 ```
 
 This creates a reference structure:
+
 ```
 playsummit-reference/
 ├── sitecore.config.ts          # NEW: Central configuration
@@ -392,6 +392,7 @@ npm list @sitecore-content-sdk/nextjs
 #### Step 3: Update package.json
 
 **Before (JSS):**
+
 ```json
 {
   "dependencies": {
@@ -406,6 +407,7 @@ npm list @sitecore-content-sdk/nextjs
 ```
 
 **After (Content SDK):**
+
 ```json
 {
   "dependencies": {
@@ -431,6 +433,7 @@ Copy-Item .env .env.jss.backup
 Create/Update `.env` file:
 
 **Before (JSS):**
+
 ```bash
 # JSS Configuration
 SITECORE_API_HOST=https://cm.xmcloud.localhost
@@ -442,6 +445,7 @@ SITECORE_EDGE_URL=https://edge.sitecorecloud.io
 ```
 
 **After (Content SDK):**
+
 ```bash
 # Content SDK Configuration
 SITECORE_API_URL=https://cm.xmcloud.localhost
@@ -461,6 +465,7 @@ NEXT_PUBLIC_ORDERCLOUD_BUYER_CLIENT_ID=your-client-id
 ```
 
 **Key Changes:**
+
 - `SITECORE_API_HOST` → `SITECORE_API_URL`
 - `JSS_EDITING_SECRET` → `SITECORE_EDITING_SECRET`
 - `DISABLE_SSG_FETCH` → `GENERATE_STATIC_PATHS` (logic inverted!)
@@ -475,37 +480,33 @@ NEXT_PUBLIC_ORDERCLOUD_BUYER_CLIENT_ID=your-client-id
 Create `sitecore.config.ts` in the root directory:
 
 ```typescript
-import { SitecoreConfig } from '@sitecore-content-sdk/nextjs';
+import { SitecoreConfig } from "@sitecore-content-sdk/nextjs";
 
 export const sitecoreConfig: SitecoreConfig = {
   // Site configuration
-  siteName: process.env.SITECORE_SITE_NAME || 'playwebsite',
-  
+  siteName: process.env.SITECORE_SITE_NAME || "playwebsite",
+
   // API configuration
-  apiUrl: process.env.SITECORE_API_URL || '',
-  apiKey: process.env.SITECORE_API_KEY || '',
-  
+  apiUrl: process.env.SITECORE_API_URL || "",
+  apiKey: process.env.SITECORE_API_KEY || "",
+
   // Editing configuration
-  editingSecret: process.env.SITECORE_EDITING_SECRET || '',
-  
+  editingSecret: process.env.SITECORE_EDITING_SECRET || "",
+
   // Experience Edge configuration
-  edgeUrl: process.env.NEXT_PUBLIC_SITECORE_EDGE_URL || '',
-  
+  edgeUrl: process.env.NEXT_PUBLIC_SITECORE_EDGE_URL || "",
+
   // Default language
-  defaultLanguage: 'en',
-  
+  defaultLanguage: "en",
+
   // GraphQL endpoint
-  graphqlEndpoint: process.env.GRAPH_QL_ENDPOINT || '/sitecore/api/graph/edge',
-  
+  graphqlEndpoint: process.env.GRAPH_QL_ENDPOINT || "/sitecore/api/graph/edge",
+
   // Path generation for SSG
-  generateStaticPaths: process.env.GENERATE_STATIC_PATHS === 'true',
-  
+  generateStaticPaths: process.env.GENERATE_STATIC_PATHS === "true",
+
   // Root placeholders
-  rootPlaceholders: [
-    'headless-header',
-    'headless-main',
-    'headless-footer',
-  ],
+  rootPlaceholders: ["headless-header", "headless-main", "headless-footer"],
 };
 
 export default sitecoreConfig;
@@ -516,24 +517,24 @@ export default sitecoreConfig;
 Create `sitecore.cli.config.ts` in the root directory:
 
 ```typescript
-import { SitecoreCliConfig } from '@sitecore-content-sdk/cli';
+import { SitecoreCliConfig } from "@sitecore-content-sdk/cli";
 
 export const cliConfig: SitecoreCliConfig = {
   // Component scaffolding configuration
-  componentPath: './src/components',
-  
+  componentPath: "./src/components",
+
   // Templates configuration
   templates: {
-    component: './scripts/templates/component.ts.template',
-    componentStory: './scripts/templates/component.stories.ts.template',
+    component: "./scripts/templates/component.ts.template",
+    componentStory: "./scripts/templates/component.stories.ts.template",
   },
-  
+
   // Serialization paths
   serialization: {
     modules: [
       {
-        name: 'playwebsite',
-        path: '../items',
+        name: "playwebsite",
+        path: "../items",
       },
     ],
   },
@@ -551,8 +552,8 @@ export default cliConfig;
 Create `src/lib/sitecore-client.ts`:
 
 ```typescript
-import { createSitecoreClient } from '@sitecore-content-sdk/nextjs';
-import sitecoreConfig from '../../sitecore.config';
+import { createSitecoreClient } from "@sitecore-content-sdk/nextjs";
+import sitecoreConfig from "../../sitecore.config";
 
 export const sitecoreClient = createSitecoreClient(sitecoreConfig);
 
@@ -562,15 +563,16 @@ export default sitecoreClient;
 #### Step 2: Migrate Layout Service
 
 **Before (JSS - src/lib/layout-service.ts):**
+
 ```typescript
-import { LayoutService } from '@sitecore-jss/sitecore-jss-nextjs';
-import config from 'temp/config';
+import { LayoutService } from "@sitecore-jss/sitecore-jss-nextjs";
+import config from "temp/config";
 
 export const layoutService = new LayoutService({
   apiHost: config.sitecoreApiHost,
   apiKey: config.sitecoreApiKey,
   siteName: config.jssAppName,
-  configurationName: 'sxa-jss',
+  configurationName: "sxa-jss",
 });
 
 export async function getLayoutData(path: string, language: string) {
@@ -580,8 +582,9 @@ export async function getLayoutData(path: string, language: string) {
 ```
 
 **After (Content SDK - src/lib/layout-service.ts):**
+
 ```typescript
-import { sitecoreClient } from './sitecore-client';
+import { sitecoreClient } from "./sitecore-client";
 
 export async function getLayoutData(path: string, language: string) {
   const layoutData = await sitecoreClient.layout.fetch({
@@ -589,7 +592,7 @@ export async function getLayoutData(path: string, language: string) {
     language,
     site: sitecoreClient.config.siteName,
   });
-  
+
   return layoutData;
 }
 
@@ -599,8 +602,9 @@ export default { getLayoutData };
 #### Step 3: Migrate Dictionary Service
 
 **Before (JSS):**
+
 ```typescript
-import { DictionaryService } from '@sitecore-jss/sitecore-jss-nextjs';
+import { DictionaryService } from "@sitecore-jss/sitecore-jss-nextjs";
 
 export const dictionaryService = new DictionaryService({
   apiHost: config.sitecoreApiHost,
@@ -610,15 +614,16 @@ export const dictionaryService = new DictionaryService({
 ```
 
 **After (Content SDK):**
+
 ```typescript
-import { sitecoreClient } from './sitecore-client';
+import { sitecoreClient } from "./sitecore-client";
 
 export async function getDictionaryData(language: string) {
   const dictionary = await sitecoreClient.dictionary.fetch({
     language,
     site: sitecoreClient.config.siteName,
   });
-  
+
   return dictionary;
 }
 
@@ -632,9 +637,10 @@ export default { getDictionaryData };
 #### Step 1: Update middleware.ts
 
 **Before (JSS - src/middleware.ts):**
+
 ```typescript
-import { NextRequest, NextResponse } from 'next/server';
-import { MiddlewarePlugin } from '@sitecore-jss/sitecore-jss-nextjs';
+import { NextRequest, NextResponse } from "next/server";
+import { MiddlewarePlugin } from "@sitecore-jss/sitecore-jss-nextjs";
 
 const plugins: MiddlewarePlugin[] = [
   // Plugin configurations
@@ -642,42 +648,43 @@ const plugins: MiddlewarePlugin[] = [
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
-  
+
   // Execute plugins
   for (const plugin of plugins) {
     await plugin.exec(request, response);
   }
-  
+
   return response;
 }
 ```
 
 **After (Content SDK - src/middleware.ts):**
+
 ```typescript
-import { defineMiddleware } from '@sitecore-content-sdk/nextjs';
-import { NextRequest, NextResponse } from 'next/server';
-import sitecoreConfig from '../sitecore.config';
+import { defineMiddleware } from "@sitecore-content-sdk/nextjs";
+import { NextRequest, NextResponse } from "next/server";
+import sitecoreConfig from "../sitecore.config";
 
 export default defineMiddleware({
   config: sitecoreConfig,
-  
+
   // Preview/editing mode handler
   async preview(request: NextRequest) {
     const response = NextResponse.next();
     // Custom preview logic
     return response;
   },
-  
+
   // Redirect handler
   async redirect(request: NextRequest) {
     const redirects = await sitecoreClient.redirects.fetch({
       site: sitecoreConfig.siteName,
     });
-    
+
     // Handle redirects
     return null; // or RedirectResponse
   },
-  
+
   // Personalization handler
   async personalize(request: NextRequest) {
     // Personalization logic
@@ -690,7 +697,7 @@ export const config = {
     /*
      * Match all request paths except static files and assets
      */
-    '/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js).*)',
+    "/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js).*)",
   ],
 };
 ```
@@ -704,16 +711,16 @@ export const config = {
 Create `src/lib/component-map.ts`:
 
 ```typescript
-import { ComponentMap } from '@sitecore-content-sdk/nextjs';
+import { ComponentMap } from "@sitecore-content-sdk/nextjs";
 
 // Import all components
-import ContentBlock from 'components/ContentBlock';
-import Hero from 'components/Hero';
-import Navigation from 'components/Navigation';
-import ProductList from 'components/ProductList';
-import SessionList from 'components/SessionList';
-import SponsorGrid from 'components/SponsorGrid';
-import InformationPageHero from 'components/InformationPageHero';
+import ContentBlock from "components/ContentBlock";
+import Hero from "components/Hero";
+import Navigation from "components/Navigation";
+import ProductList from "components/ProductList";
+import SessionList from "components/SessionList";
+import SponsorGrid from "components/SponsorGrid";
+import InformationPageHero from "components/InformationPageHero";
 // ... import other components
 
 // Create component map
@@ -722,17 +729,17 @@ export const componentMap: ComponentMap = {
   ContentBlock,
   Hero,
   Navigation,
-  
+
   // Product components
   ProductList,
-  
+
   // Event components
   SessionList,
   SponsorGrid,
-  
+
   // Page components
   InformationPageHero,
-  
+
   // Add all other components...
 };
 
@@ -751,10 +758,11 @@ npx sitecore-tools component map --generate
 #### Step 3: Update Component Definitions
 
 **Before (JSS):**
+
 ```typescript
 // src/components/Hero.tsx
-import { Field, ImageField } from '@sitecore-jss/sitecore-jss-nextjs';
-import { ComponentProps } from 'lib/component-props';
+import { Field, ImageField } from "@sitecore-jss/sitecore-jss-nextjs";
+import { ComponentProps } from "lib/component-props";
 
 type HeroProps = ComponentProps & {
   fields: {
@@ -778,10 +786,11 @@ export default Hero;
 ```
 
 **After (Content SDK):**
+
 ```typescript
 // src/components/Hero.tsx
-import { Field, ImageField, Text, Image } from '@sitecore-content-sdk/nextjs';
-import { ComponentProps } from '@sitecore-content-sdk/nextjs';
+import { Field, ImageField, Text, Image } from "@sitecore-content-sdk/nextjs";
+import { ComponentProps } from "@sitecore-content-sdk/nextjs";
 
 type HeroProps = ComponentProps & {
   fields: {
@@ -811,19 +820,20 @@ export default Hero;
 #### Step 1: Update [[...path]].tsx
 
 **Before (JSS):**
+
 ```typescript
 // pages/[[...path]].tsx
-import { GetStaticPaths, GetStaticProps } from 'next';
-import { SitecorePageProps } from 'lib/page-props';
-import { sitecorePagePropsFactory } from 'lib/page-props-factory';
-import Layout from 'components/Layout';
-import { componentFactory } from 'temp/componentFactory';
+import { GetStaticPaths, GetStaticProps } from "next";
+import { SitecorePageProps } from "lib/page-props";
+import { sitecorePagePropsFactory } from "lib/page-props-factory";
+import Layout from "components/Layout";
+import { componentFactory } from "temp/componentFactory";
 
 const SitecorePage = ({ layoutData, headLinks }: SitecorePageProps) => {
   return (
     <Layout layoutData={layoutData} headLinks={headLinks}>
-      <Placeholder 
-        name="headless-main" 
+      <Placeholder
+        name="headless-main"
         rendering={layoutData.sitecore.route}
         componentFactory={componentFactory}
       />
@@ -843,7 +853,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
   // Path generation logic
   return {
     paths: [],
-    fallback: 'blocking',
+    fallback: "blocking",
   };
 };
 
@@ -851,19 +861,24 @@ export default SitecorePage;
 ```
 
 **After (Content SDK):**
+
 ```typescript
 // pages/[[...path]].tsx
-import { GetStaticPaths, GetStaticProps } from 'next';
-import { SitecorePageProps, getLayoutData, getStaticPaths as getContentPaths } from '@sitecore-content-sdk/nextjs';
-import Layout from 'components/Layout';
-import { componentMap } from 'lib/component-map';
-import sitecoreConfig from '../sitecore.config';
+import { GetStaticPaths, GetStaticProps } from "next";
+import {
+  SitecorePageProps,
+  getLayoutData,
+  getStaticPaths as getContentPaths,
+} from "@sitecore-content-sdk/nextjs";
+import Layout from "components/Layout";
+import { componentMap } from "lib/component-map";
+import sitecoreConfig from "../sitecore.config";
 
 const SitecorePage = ({ layoutData }: SitecorePageProps) => {
   return (
     <Layout layoutData={layoutData}>
-      <Placeholder 
-        name="headless-main" 
+      <Placeholder
+        name="headless-main"
         rendering={layoutData.sitecore.route}
         componentMap={componentMap}
       />
@@ -874,19 +889,19 @@ const SitecorePage = ({ layoutData }: SitecorePageProps) => {
 export const getStaticProps: GetStaticProps = async (context) => {
   const path = (context.params?.path as string[]) || [];
   const locale = context.locale || sitecoreConfig.defaultLanguage;
-  
+
   const layoutData = await getLayoutData({
-    path: '/' + path.join('/'),
+    path: "/" + path.join("/"),
     language: locale,
     site: sitecoreConfig.siteName,
   });
-  
+
   if (!layoutData) {
     return {
       notFound: true,
     };
   }
-  
+
   return {
     props: {
       layoutData,
@@ -899,18 +914,18 @@ export const getStaticPaths: GetStaticPaths = async (context) => {
   if (!sitecoreConfig.generateStaticPaths) {
     return {
       paths: [],
-      fallback: 'blocking',
+      fallback: "blocking",
     };
   }
-  
+
   const paths = await getContentPaths({
     site: sitecoreConfig.siteName,
     locales: context.locales,
   });
-  
+
   return {
     paths,
-    fallback: 'blocking',
+    fallback: "blocking",
   };
 };
 
@@ -927,11 +942,13 @@ Content SDK removes the `headLinks` prop. Update:
 4. `components/Layout.tsx` - Remove headLinks handling
 
 **Before:**
+
 ```typescript
 <Layout layoutData={layoutData} headLinks={headLinks}>
 ```
 
 **After:**
+
 ```typescript
 <Layout layoutData={layoutData}>
 ```
@@ -943,6 +960,7 @@ Content SDK removes the `headLinks` prop. Update:
 #### Step 1: Update package.json Scripts
 
 **Before (JSS):**
+
 ```json
 {
   "scripts": {
@@ -955,6 +973,7 @@ Content SDK removes the `headLinks` prop. Update:
 ```
 
 **After (Content SDK):**
+
 ```json
 {
   "scripts": {
@@ -969,6 +988,7 @@ Content SDK removes the `headLinks` prop. Update:
 ```
 
 **Key Changes:**
+
 - `start:connected` → `dev`
 - `start:production` → `start`
 - Added Content SDK CLI commands
@@ -1005,6 +1025,7 @@ Remove-Item -Path "scjssconfig.json" -Force
 #### Step 2: Remove Obsolete Services
 
 Files to remove:
+
 - `src/lib/page-props-factory` (replaced by built-in functions)
 - `src/lib/site-resolver` (built into Content SDK)
 - `src/lib/sitemap-fetcher` (use `sitecoreClient.sitemap`)
@@ -1015,7 +1036,7 @@ Run a global find and replace:
 
 ```powershell
 # Find all files with JSS imports
-Get-ChildItem -Path src -Filter "*.ts*" -Recurse | 
+Get-ChildItem -Path src -Filter "*.ts*" -Recurse |
   ForEach-Object {
     $content = Get-Content $_.FullName
     $content = $content -replace '@sitecore-jss/sitecore-jss-nextjs', '@sitecore-content-sdk/nextjs'
@@ -1044,6 +1065,7 @@ npm run dev
 ```
 
 Expected output:
+
 ```
 ✓ Ready on http://localhost:3000
 ✓ Compiled /[[...path]] in XXXms
@@ -1057,28 +1079,33 @@ Create a test checklist:
 ## Testing Checklist
 
 ### Basic Functionality
+
 - [ ] Homepage loads correctly
 - [ ] Navigation works
 - [ ] Images display properly
 - [ ] Links are functional
 
 ### Content Features
+
 - [ ] Dynamic routes work (e.g., /sessions, /speakers)
 - [ ] 404 pages work
 - [ ] 500 error handling works
 - [ ] Multi-language support (if applicable)
 
 ### Editing Features
+
 - [ ] XM Cloud Pages preview mode works
 - [ ] Component editing in Pages works
 - [ ] Personalization works (if configured)
 
 ### Performance
+
 - [ ] Page load times are acceptable
 - [ ] Static generation works (if enabled)
 - [ ] API calls are optimized
 
 ### Integrations
+
 - [ ] Sitecore Search works
 - [ ] OrderCloud integration works
 - [ ] Auth0 authentication works
@@ -1093,12 +1120,12 @@ Enable debug logging:
 // sitecore.config.ts
 export const sitecoreConfig: SitecoreConfig = {
   // ... other config
-  
+
   // Enable debug mode
-  debug: process.env.NODE_ENV === 'development',
-  
+  debug: process.env.NODE_ENV === "development",
+
   // Enable verbose logging
-  logLevel: 'debug',
+  logLevel: "debug",
 };
 ```
 
@@ -1114,6 +1141,7 @@ npm run build
 ```
 
 Verify build output:
+
 ```
 ✓ Compiled successfully
 ✓ Collecting page data
@@ -1179,6 +1207,7 @@ lighthouse http://localhost:3000 --view
 ```
 
 Target metrics:
+
 - Performance: > 90
 - Accessibility: > 90
 - Best Practices: > 90
@@ -1187,6 +1216,7 @@ Target metrics:
 #### 3. **XM Cloud Pages Testing**
 
 1. **Preview Mode**
+
    - Navigate to XM Cloud Pages
    - Select a page to edit
    - Verify preview loads correctly
@@ -1203,22 +1233,22 @@ Test all external integrations:
 
 ```typescript
 // Create a test script: scripts/test-integrations.ts
-import { sitecoreClient } from '../src/lib/sitecore-client';
+import { sitecoreClient } from "../src/lib/sitecore-client";
 
 async function testIntegrations() {
-  console.log('Testing Sitecore API...');
+  console.log("Testing Sitecore API...");
   const layout = await sitecoreClient.layout.fetch({
-    path: '/',
-    language: 'en',
+    path: "/",
+    language: "en",
   });
-  console.log('✓ Layout API works');
-  
-  console.log('Testing Dictionary API...');
+  console.log("✓ Layout API works");
+
+  console.log("Testing Dictionary API...");
   const dictionary = await sitecoreClient.dictionary.fetch({
-    language: 'en',
+    language: "en",
   });
-  console.log('✓ Dictionary API works');
-  
+  console.log("✓ Dictionary API works");
+
   // Add more integration tests...
 }
 
@@ -1226,6 +1256,7 @@ testIntegrations().catch(console.error);
 ```
 
 Run with:
+
 ```powershell
 ts-node scripts/test-integrations.ts
 ```
@@ -1313,14 +1344,17 @@ npm list @sitecore-content-sdk/nextjs
 ```
 
 **Why This Matters:**
+
 - Node.js 18 lacks features required by Content SDK
 - Package installation may appear to succeed but will fail at runtime
 - All subsequent npm operations must be performed with Node.js 22 active
 
 # Reinstall dependencies with correct Node version
+
 Remove-Item -Path "node_modules" -Recurse -Force
 npm install --legacy-peer-deps
-```
+
+````
 
 ### Challenge 3: Environment Variable Issues
 
@@ -1334,16 +1368,17 @@ Get-Content .env
 # Ensure all required variables are set
 # Restart development server
 npm run dev
-```
+````
 
 ### Challenge 4: Component Mapping Errors
 
 **Problem:** `Component 'MyComponent' not found in component map`
 
 **Solution:**
+
 ```typescript
 // Ensure component is exported in component-map.ts
-import MyComponent from 'components/MyComponent';
+import MyComponent from "components/MyComponent";
 
 export const componentMap = {
   // ... other components
@@ -1356,12 +1391,11 @@ export const componentMap = {
 **Problem:** Middleware doesn't run on certain routes
 
 **Solution:**
+
 ```typescript
 // Update middleware.ts config matcher
 export const config = {
-  matcher: [
-    '/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js).*)',
-  ],
+  matcher: ["/((?!api|_next/static|_next/image|assets|favicon.ico|sw.js).*)"],
 };
 ```
 
@@ -1370,10 +1404,11 @@ export const config = {
 **Problem:** `getStaticPaths` returns errors
 
 **Solution:**
+
 ```typescript
 // Disable static generation temporarily
 // In .env
-GENERATE_STATIC_PATHS=false
+GENERATE_STATIC_PATHS = false;
 
 // Or in sitecore.config.ts
 export const sitecoreConfig = {
@@ -1386,6 +1421,7 @@ export const sitecoreConfig = {
 **Problem:** Type errors with Content SDK imports
 
 **Solution:**
+
 ```powershell
 # Regenerate TypeScript definitions
 npm run graphql:update
@@ -1402,6 +1438,7 @@ Remove-Item -Path ".next" -Recurse -Force
 **Problem:** GraphQL queries fail after migration
 
 **Solution:**
+
 ```powershell
 # Update GraphQL schema
 npm run graphql:update
@@ -1415,6 +1452,7 @@ npx graphql-codegen
 **Problem:** Preview mode authentication fails
 
 **Solution:**
+
 ```bash
 # Verify editing secret matches
 # In .env
@@ -1427,12 +1465,14 @@ SITECORE_EDITING_SECRET=your-matching-secret
 ### Challenge 10: React 19 Breaking Changes
 
 **Problem:** Component errors after upgrading to React 19:
+
 ```
 Warning: React.FC type no longer provides implicit children
 Error: createContext requires a defaultValue
 ```
 
 **Solution:** Update component patterns for React 19:
+
 ```typescript
 // Old React 18 pattern
 const MyComponent: React.FC = ({ children }) => { ... }
@@ -1449,6 +1489,7 @@ const MyContext = createContext<MyContextType>(defaultValue);
 **Problem:** Pages router deprecated features causing warnings
 
 **Solution:** Review Next.js 15 migration guide:
+
 ```powershell
 # Check Next.js specific issues
 npm run build 2>&1 | Select-String "deprecated"
@@ -1461,9 +1502,10 @@ npm run build 2>&1 | Select-String "deprecated"
 **Problem:** Field components don't render
 
 **Solution:**
+
 ```typescript
 // Import from Content SDK, not JSS
-import { Text, RichText, Image, Link } from '@sitecore-content-sdk/nextjs';
+import { Text, RichText, Image, Link } from "@sitecore-content-sdk/nextjs";
 
 // Not from:
 // import { Text } from '@sitecore-jss/sitecore-jss-nextjs';
@@ -1478,32 +1520,39 @@ import { Text, RichText, Image, Link } from '@sitecore-content-sdk/nextjs';
 #### Layout Fetching
 
 **JSS (Before) - ~50 lines:**
+
 ```typescript
-import { LayoutService, LayoutServiceData } from '@sitecore-jss/sitecore-jss-nextjs';
-import config from 'temp/config';
+import {
+  LayoutService,
+  LayoutServiceData,
+} from "@sitecore-jss/sitecore-jss-nextjs";
+import config from "temp/config";
 
 class CustomLayoutService {
   private layoutService: LayoutService;
-  
+
   constructor() {
     this.layoutService = new LayoutService({
       apiHost: config.sitecoreApiHost,
       apiKey: config.sitecoreApiKey,
       siteName: config.jssAppName,
-      configurationName: 'sxa-jss',
+      configurationName: "sxa-jss",
     });
   }
-  
-  async fetchLayoutData(path: string, language: string): Promise<LayoutServiceData> {
+
+  async fetchLayoutData(
+    path: string,
+    language: string
+  ): Promise<LayoutServiceData> {
     try {
       const data = await this.layoutService.fetchLayoutData(path, language);
       return this.transformLayoutData(data);
     } catch (error) {
-      console.error('Layout fetch error:', error);
+      console.error("Layout fetch error:", error);
       throw error;
     }
   }
-  
+
   private transformLayoutData(data: LayoutServiceData) {
     // Custom transformation logic
     return data;
@@ -1514,8 +1563,9 @@ export const customLayoutService = new CustomLayoutService();
 ```
 
 **Content SDK (After) - ~15 lines:**
+
 ```typescript
-import { sitecoreClient } from './sitecore-client';
+import { sitecoreClient } from "./sitecore-client";
 
 export async function getLayoutData(path: string, language: string) {
   return await sitecoreClient.layout.fetch({
@@ -1532,23 +1582,23 @@ export async function getLayoutData(path: string, language: string) {
 
 ### Bundle Size Comparison
 
-| Metric | JSS | Content SDK | Improvement |
-|--------|-----|------------|-------------|
-| **node_modules size** | 450 MB | 320 MB | -29% |
-| **Initial bundle** | 280 KB | 190 KB | -32% |
-| **First Load JS** | 350 KB | 240 KB | -31% |
-| **Dependencies** | 87 | 65 | -25% |
+| Metric                | JSS    | Content SDK | Improvement |
+| --------------------- | ------ | ----------- | ----------- |
+| **node_modules size** | 450 MB | 320 MB      | -29%        |
+| **Initial bundle**    | 280 KB | 190 KB      | -32%        |
+| **First Load JS**     | 350 KB | 240 KB      | -31%        |
+| **Dependencies**      | 87     | 65          | -25%        |
 
 ---
 
 ### Performance Metrics
 
-| Metric | JSS | Content SDK | Improvement |
-|--------|-----|------------|-------------|
-| **Time to Interactive** | 3.2s | 2.1s | -34% |
-| **Largest Contentful Paint** | 2.8s | 1.9s | -32% |
-| **Cumulative Layout Shift** | 0.12 | 0.08 | -33% |
-| **First Contentful Paint** | 1.5s | 1.0s | -33% |
+| Metric                       | JSS  | Content SDK | Improvement |
+| ---------------------------- | ---- | ----------- | ----------- |
+| **Time to Interactive**      | 3.2s | 2.1s        | -34%        |
+| **Largest Contentful Paint** | 2.8s | 1.9s        | -32%        |
+| **Cumulative Layout Shift**  | 0.12 | 0.08        | -33%        |
+| **First Contentful Paint**   | 1.5s | 1.0s        | -33%        |
 
 ---
 
@@ -1558,15 +1608,15 @@ export async function getLayoutData(path: string, language: string) {
 
 ```typescript
 // Use environment-specific configs
-const isDevelopment = process.env.NODE_ENV === 'development';
+const isDevelopment = process.env.NODE_ENV === "development";
 
 export const sitecoreConfig: SitecoreConfig = {
   siteName: process.env.SITECORE_SITE_NAME!,
   apiUrl: process.env.SITECORE_API_URL!,
-  
+
   // Enable debug in development only
   debug: isDevelopment,
-  
+
   // Cache configuration
   cache: {
     enabled: !isDevelopment,
@@ -1586,12 +1636,12 @@ export async function fetchWithErrorHandling<T>(
   try {
     return await fetcher();
   } catch (error) {
-    console.error('Fetch error:', error);
-    
+    console.error("Fetch error:", error);
+
     if (sitecoreConfig.debug) {
       throw error; // Re-throw in development
     }
-    
+
     return fallback; // Return fallback in production
   }
 }
@@ -1629,7 +1679,7 @@ src/components/
 
 ```typescript
 // Define strict types for components
-import { ComponentProps, Field } from '@sitecore-content-sdk/nextjs';
+import { ComponentProps, Field } from "@sitecore-content-sdk/nextjs";
 
 export type HeroFields = {
   title: Field<string>;
@@ -1651,16 +1701,16 @@ const Hero = ({ fields, rendering }: HeroProps) => {
 
 ```typescript
 // Implement intelligent caching
-import { unstable_cache } from 'next/cache';
+import { unstable_cache } from "next/cache";
 
 export const getCachedLayout = unstable_cache(
   async (path: string, language: string) => {
     return await sitecoreClient.layout.fetch({ path, language });
   },
-  ['layout-cache'],
+  ["layout-cache"],
   {
     revalidate: 300, // 5 minutes
-    tags: ['layout'],
+    tags: ["layout"],
   }
 );
 ```
@@ -1682,35 +1732,38 @@ By migrating from JSS to Content SDK 1.x, the PLAY! Summit demo achieves:
 
 ### Migration Summary
 
-| Phase | Estimated Time | Complexity |
-|-------|---------------|-----------|
-| **Upgrade to JSS 22.8** | 2-4 hours | Medium |
-| **Assessment** | 2-4 hours | Low |
-| **Environment Setup** | 1-2 hours | Low |
-| **Dependency Updates** | 2-3 hours | Medium |
-| **Configuration** | 2-3 hours | Medium |
-| **Service Migration** | 4-6 hours | Medium |
-| **Middleware Updates** | 2-3 hours | Medium |
-| **Component Updates** | 8-16 hours | High |
-| **React 19 Updates** | 4-8 hours | High |
-| **Testing** | 8-12 hours | High |
-| **Total** | **35-61 hours** | **High** |
+| Phase                   | Estimated Time  | Complexity |
+| ----------------------- | --------------- | ---------- |
+| **Upgrade to JSS 22.8** | 2-4 hours       | Medium     |
+| **Assessment**          | 2-4 hours       | Low        |
+| **Environment Setup**   | 1-2 hours       | Low        |
+| **Dependency Updates**  | 2-3 hours       | Medium     |
+| **Configuration**       | 2-3 hours       | Medium     |
+| **Service Migration**   | 4-6 hours       | Medium     |
+| **Middleware Updates**  | 2-3 hours       | Medium     |
+| **Component Updates**   | 8-16 hours      | High       |
+| **React 19 Updates**    | 4-8 hours       | High       |
+| **Testing**             | 8-12 hours      | High       |
+| **Total**               | **35-61 hours** | **High**   |
 
-*Note: Time estimates for PLAY! Summit with ~50 components. React 19 and Next.js 15 updates add complexity.*
+_Note: Time estimates for PLAY! Summit with ~50 components. React 19 and Next.js 15 updates add complexity._
 
 ### Next Steps
 
 1. **Optimize Performance**
+
    - Implement advanced caching strategies
    - Optimize image loading
    - Configure ISR (Incremental Static Regeneration)
 
 2. **Enhance Features**
+
    - Implement advanced personalization
    - Add A/B testing capabilities
    - Integrate analytics tracking
 
 3. **Improve Developer Experience**
+
    - Create custom CLI tools
    - Set up automated testing
    - Document component library
@@ -1723,16 +1776,19 @@ By migrating from JSS to Content SDK 1.x, the PLAY! Summit demo achieves:
 ### Useful Resources
 
 📚 **Official Documentation:**
+
 - [Sitecore Content SDK Documentation](https://doc.sitecore.com/sai/en/developers/content-sdk/)
 - [Content SDK GitHub Repository](https://github.com/Sitecore/content-sdk)
 - [XM Cloud Documentation](https://doc.sitecore.com/xmc/)
 
 💬 **Community:**
+
 - [Sitecore Stack Exchange](https://sitecore.stackexchange.com/)
 - [Sitecore Slack Community](https://sitecore.chat/)
 - [Sitecore Community Blog](https://community.sitecore.com/)
 
 🎓 **Learning:**
+
 - [Sitecore Learning Portal](https://learning.sitecore.com/)
 - [Content SDK Sample Apps](https://github.com/Sitecore/content-sdk-samples)
 - [XM Cloud Tutorials](https://doc.sitecore.com/xmc/en/developers/)
@@ -1750,12 +1806,14 @@ This section documents real-world experiences and lessons learned while migratin
 The most critical discovery: **Node.js 22 is not optional**. The migration cannot proceed on Node.js 18, despite appearing to install successfully.
 
 **What Happened:**
+
 - Initial attempt on Node.js 18.18.0 with npm 9.8.1
 - Content SDK installation showed EBADENGINE warnings
 - These warnings initially appeared non-critical
 - Reality: Both JSS 22.8.0 and Content SDK require Node.js >=22
 
 **Correct Approach:**
+
 ```powershell
 # FIRST: Verify Node.js version
 node --version
@@ -1774,6 +1832,7 @@ nvm use 22.17.1  # or nvm install 22.17.1
 #### 2. **Combine npm Operations to Avoid Peer Dependency Hell**
 
 **What Didn't Work:**
+
 ```powershell
 # ❌ Removing packages one by one
 npm uninstall @sitecore-jss/sitecore-jss-nextjs
@@ -1783,6 +1842,7 @@ npm uninstall @sitecore-jss/sitecore-jss-cli
 ```
 
 **What Worked:**
+
 ```powershell
 # ✅ Remove all JSS packages in one command
 npm uninstall @sitecore-jss/sitecore-jss-nextjs @sitecore-jss/sitecore-jss-cli @sitecore-jss/sitecore-jss-dev-tools --legacy-peer-deps
@@ -1818,6 +1878,7 @@ npm install --legacy-peer-deps
 #### 5. **Only Install @sitecore-content-sdk/nextjs**
 
 **What Didn't Work:**
+
 ```powershell
 # ❌ Installing both packages explicitly causes errors
 npm install @sitecore-content-sdk/nextjs@latest @sitecore/content-sdk@latest --legacy-peer-deps
@@ -1825,6 +1886,7 @@ npm install @sitecore-content-sdk/nextjs@latest @sitecore/content-sdk@latest --l
 ```
 
 **What Worked:**
+
 ```powershell
 # ✅ Install only the Next.js SDK package
 npm install @sitecore-content-sdk/nextjs@latest --legacy-peer-deps
@@ -1833,6 +1895,7 @@ npm install @sitecore-content-sdk/nextjs@latest --legacy-peer-deps
 **Why:** The `@sitecore/content-sdk` core package is automatically included as a dependency of `@sitecore-content-sdk/nextjs`. Installing both explicitly creates conflicts in the dependency tree.
 
 **Verification:**
+
 ```powershell
 npm list @sitecore-content-sdk/nextjs
 # Expected: playwebsite@1.0.0 └── @sitecore-content-sdk/nextjs@1.2.1
@@ -1858,13 +1921,13 @@ npm list @sitecore-content-sdk/nextjs
 
 ### Actual Timeline (So Far)
 
-| Phase | Estimated | Actual | Notes |
-|-------|-----------|--------|-------|
-| **Upgrade to JSS 22.8** | 2-4 hours | 1 hour | Straightforward with correct Node.js version |
-| **Remove JSS Packages** | 30 min | 1.5 hours | Trial and error with npm commands |
-| **Install Content SDK** | 30 min | 2.5 hours | Node.js version + package installation discovery |
-| **Install Content SDK** | 30 min | 2.5 hours | Node.js version + package installation discovery |
-| **Documentation Updates** | 1 hour | 2.5 hours | Capturing lessons learned |
+| Phase                     | Estimated | Actual    | Notes                                            |
+| ------------------------- | --------- | --------- | ------------------------------------------------ |
+| **Upgrade to JSS 22.8**   | 2-4 hours | 1 hour    | Straightforward with correct Node.js version     |
+| **Remove JSS Packages**   | 30 min    | 1.5 hours | Trial and error with npm commands                |
+| **Install Content SDK**   | 30 min    | 2.5 hours | Node.js version + package installation discovery |
+| **Install Content SDK**   | 30 min    | 2.5 hours | Node.js version + package installation discovery |
+| **Documentation Updates** | 1 hour    | 2.5 hours | Capturing lessons learned                        |
 
 **Total So Far:** ~7.5 hours (mostly due to Node.js discovery and npm command debugging)
 
@@ -1902,6 +1965,7 @@ Use this checklist to track your migration progress:
 
 ```markdown
 ## Pre-Migration
+
 - [ ] Backup current codebase
 - [ ] Create migration branch
 - [ ] **⚠️ CRITICAL: Verify Node.js version is 22+ (use `node --version`)**
@@ -1916,6 +1980,7 @@ Use this checklist to track your migration progress:
 - [ ] Review Next.js 15 breaking changes
 
 ## Migration
+
 - [ ] Remove JSS dependencies
 - [ ] Install Content SDK packages
 - [ ] Update environment variables
@@ -1933,6 +1998,7 @@ Use this checklist to track your migration progress:
 - [ ] Fix all TypeScript errors
 
 ## Testing
+
 - [ ] Local development works
 - [ ] All pages render correctly
 - [ ] Navigation functions properly
@@ -1947,6 +2013,7 @@ Use this checklist to track your migration progress:
 - [ ] No console errors
 
 ## Deployment
+
 - [ ] Production build succeeds
 - [ ] All tests pass
 - [ ] Documentation updated
@@ -1956,6 +2023,7 @@ Use this checklist to track your migration progress:
 - [ ] Production deployment successful
 
 ## Post-Deployment
+
 - [ ] Verify production site
 - [ ] Monitor for errors
 - [ ] Performance monitoring active
@@ -1991,6 +2059,7 @@ Please read the [LICENSE](https://github.com/Sitecore/Sitecore.Demo.XmCloud.Play
 ## 📧 Feedback
 
 Found an issue or have suggestions? Please:
+
 - Open an issue on the [PLAY! Summit GitHub](https://github.com/Sitecore/Sitecore.Demo.XmCloud.PlaySummit/issues)
 - Join the discussion on [Sitecore Slack](https://sitecore.chat/) #sitecoredemo
 - Ask questions on [Sitecore Stack Exchange](https://sitecore.stackexchange.com/)
@@ -2003,4 +2072,4 @@ Found an issue or have suggestions? Please:
 
 ---
 
-*Happy Sitecoring! 🚀*
+_Happy Sitecoring! 🚀_
